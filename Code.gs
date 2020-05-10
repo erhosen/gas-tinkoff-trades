@@ -1,4 +1,6 @@
-const scriptProperties = PropertiesService.getScriptProperties()
+var scriptProperties = PropertiesService.getScriptProperties()
+var CACHE = CacheService.getScriptCache()
+
 const OPENAPI_TOKEN = scriptProperties.getProperty('OPENAPI_TOKEN')
 const TRADING_START_AT = new Date('Apr 01, 2020 10:00:00')
 const MILLIS_PER_DAY = 1000 * 60 * 60 * 24
@@ -16,7 +18,6 @@ class TinkoffClient {
   constructor(token) {
     this.token = token
     this.baseUrl = 'https://api-invest.tinkoff.ru/openapi/'
-    this.CACHE = CacheService.getScriptCache()
   }
   
   _makeApiCall(methodUrl) {
@@ -28,21 +29,16 @@ class TinkoffClient {
       return JSON.parse(response.getContentText())
   }
   
-  getFigiByTicker(ticker) {
-    var cached = this.CACHE.get(ticker)
-    if (cached != null) 
-      return cached
+  getInstrumentByTicker(ticker) {
     var url = `market/search/by-ticker?ticker=${ticker}`
     var data = this._makeApiCall(url)
-    var figi = data.payload.instruments[0].figi
-    this.CACHE.put(ticker, figi)
-    return figi
+    return data.payload.instruments[0]
   }
   
-  gerPriceByFigi(figi) {
+  getOrderbookByFigi(figi) {
     var url = `market/orderbook?depth=1&figi=${figi}`
     var data = this._makeApiCall(url)
-    return data.payload.lastPrice
+    return data.payload
   }
   
   getOperations(from, to, figi) {
@@ -55,16 +51,26 @@ class TinkoffClient {
 
 var tinkoffClient = new TinkoffClient(OPENAPI_TOKEN)
 
+function _getFigiByTicker(ticker) {
+  var cached = this.CACHE.get(ticker)
+  if (cached != null) 
+    return cached
+  var instrument = tinkoffClient.getInstrumentByTicker(ticker)
+  var figi = instrument.figi
+  CACHE.put(ticker, figi)
+  return figi
+}
+
 function getPriceByTicker(ticker, dummy) {
   // dummy attribute uses for auto-refreshing the value each time the sheet is updating.
   // see https://stackoverflow.com/a/27656313
-  var figi = tinkoffClient.getFigiByTicker(ticker)
-  var price = tinkoffClient.gerPriceByFigi(figi)
-  return price
+  var figi = _getFigiByTicker(ticker)
+  var orderbook = tinkoffClient.getOrderbookByFigi(figi)
+  return orderbook.lastPrice
 }
 
 function getTrades(ticker, from, to) {
-  var figi = tinkoffClient.getFigiByTicker(ticker)
+  var figi = _getFigiByTicker(ticker)
   if (!from) {
     from = TRADING_START_AT.toISOString()
   }
