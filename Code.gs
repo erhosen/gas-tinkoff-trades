@@ -1,13 +1,13 @@
-var scriptProperties = PropertiesService.getScriptProperties()
+const scriptProperties = PropertiesService.getScriptProperties()
 const OPENAPI_TOKEN = scriptProperties.getProperty('OPENAPI_TOKEN')
 const TRADING_START_AT = new Date('Apr 01, 2020 10:00:00')
-const MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
+const MILLIS_PER_DAY = 1000 * 60 * 60 * 24
 
 function isoToDate(dateStr){
   // How to format date string so that google scripts recognizes it?
   // https://stackoverflow.com/a/17253060
-  var str = dateStr.replace(/-/,'/').replace(/-/,'/').replace(/T/,' ').replace(/\+/,' \+').replace(/Z/,' +00');
-  return new Date(str);
+  var str = dateStr.replace(/-/,'/').replace(/-/,'/').replace(/T/,' ').replace(/\+/,' \+').replace(/Z/,' +00')
+  return new Date(str)
 }
 
 class TinkoffClient {
@@ -101,6 +101,6 @@ function getTrades(ticker, from, to) {
 
 function onEdit(e)
 {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
   sheet.getRange('Z1').setValue(Math.random())
 }
