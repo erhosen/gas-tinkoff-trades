@@ -1,10 +1,7 @@
 var scriptProperties = PropertiesService.getScriptProperties()
-const TOKEN_SANDBOX = scriptProperties.getProperty('TOKEN_SANDBOX')
-const TOKEN_PROD = scriptProperties.getProperty('TOKEN_PROD')
-const MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
+const OPENAPI_TOKEN = scriptProperties.getProperty('OPENAPI_TOKEN')
 const TRADING_START_AT = new Date('Apr 01, 2020 10:00:00')
-//test comment
-
+const MILLIS_PER_DAY = 1000 * 60 * 60 * 24;
 
 function isoToDate(dateStr){
   // How to format date string so that google scripts recognizes it?
@@ -12,7 +9,6 @@ function isoToDate(dateStr){
   var str = dateStr.replace(/-/,'/').replace(/-/,'/').replace(/T/,' ').replace(/\+/,' \+').replace(/Z/,' +00');
   return new Date(str);
 }
-
 
 class TinkoffClient {
   // Doc: https://tinkoffcreditsystems.github.io/invest-openapi/swagger-ui/
@@ -57,7 +53,7 @@ class TinkoffClient {
   }
 }
 
-var tinkoffClient = new TinkoffClient(TOKEN_PROD)
+var tinkoffClient = new TinkoffClient(OPENAPI_TOKEN)
 
 function getPriceByTicker(ticker, dummy) {
   // dummy attribute uses for auto-refreshing the value each time the sheet is updating.
@@ -80,7 +76,7 @@ function getTrades(ticker, from, to) {
   var operations = tinkoffClient.getOperations(from, to, figi)
   
   var values = [
-    ["ID", "Date", "Operation", "Ticker", "Quantity", "Price ($)", "SUM ($)", "Commission ($)"], 
+    ["ID", "Date", "Operation", "Ticker", "Quantity", "Price", "Currency", "SUM", "Commission"], 
   ]
   for (var i=operations.length-1; i>=0; i--) {
     var op = operations[i]
@@ -98,7 +94,7 @@ function getTrades(ticker, from, to) {
       wSum = -wSum
     }
     var commission = op.commission.value
-    values.push([op.id, isoToDate(op.date), op.operationType, ticker, totalQuantity, weigthedAvg, wSum, commission])
+    values.push([op.id, isoToDate(op.date), op.operationType, ticker, totalQuantity, weigthedAvg, op.currency, wSum, commission])
   }
   return values
 }
