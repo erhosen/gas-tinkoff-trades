@@ -55,8 +55,7 @@ function _getFigiByTicker(ticker) {
   let cached = CACHE.get(ticker)
   if (cached != null) 
     return cached
-  let instrument = tinkoffClient.getInstrumentByTicker(ticker)
-  let figi = instrument.figi
+  let {figi} = tinkoffClient.getInstrumentByTicker(ticker)
   CACHE.put(ticker, figi)
   return figi
 }
@@ -65,17 +64,17 @@ function getPriceByTicker(ticker, dummy) {
   // dummy attribute uses for auto-refreshing the value each time the sheet is updating.
   // see https://stackoverflow.com/a/27656313
   let figi = _getFigiByTicker(ticker)
-  let orderbook = tinkoffClient.getOrderbookByFigi(figi)
-  return orderbook.lastPrice
+  let {lastPrice} = tinkoffClient.getOrderbookByFigi(figi)
+  return lastPrice
 }
 
 function _calculateTrades(trades) {
   let totalSum = 0
   let totalQuantity = 0
   for (let j in trades) {
-    t = trades[j]
-    totalQuantity += t.quantity
-    totalSum += t.quantity * t.price
+    let {quantity, price} = trades[j]
+    totalQuantity += quantity
+    totalSum += quantity * price
   }
   let weigthedPrice = totalSum / totalQuantity
   return [totalQuantity, totalSum, weigthedPrice]
@@ -97,15 +96,16 @@ function getTrades(ticker, from, to) {
     ["ID", "Date", "Operation", "Ticker", "Quantity", "Price", "Currency", "SUM", "Commission"], 
   ]
   for (let i=operations.length-1; i>=0; i--) {
-    let op = operations[i]
-    if (op.operationType == "BrokerCommission" || op.status == "Decline") {continue}
-    let [totalQuantity, totalSum, weigthedPrice] = _calculateTrades(op.trades) // calculate weighted values
-    if (op.operationType == "Buy") {  // inverse values in a way, that it will be easier to work with
+    let {operationType, status, trades, id, date, currency, commission} = operations[i]
+    if (operationType == "BrokerCommission" || status == "Decline") 
+      continue
+    let [totalQuantity, totalSum, weigthedPrice] = _calculateTrades(trades) // calculate weighted values
+    if (operationType == "Buy") {  // inverse values in a way, that it will be easier to work with
       totalQuantity = -totalQuantity
       totalSum = -totalSum
     }
     values.push([
-      op.id, isoToDate(op.date), op.operationType, ticker, totalQuantity, weigthedPrice, op.currency, totalSum, op.commission.value
+      id, isoToDate(date), operationType, ticker, totalQuantity, weigthedPrice, currency, totalSum, commission.value
     ])
   }
   return values
