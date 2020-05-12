@@ -111,8 +111,7 @@ function getTrades(ticker, from, to) {
   return values
 }
 
-function onEdit(e)
-{
+function onEdit(e) {
   let sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
   sheet.getRange('Z1').setValue(Math.random())
 }
