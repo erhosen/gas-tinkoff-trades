@@ -8,7 +8,7 @@
 
 ## Установка
 
-* Создать или открыть документ Google Spreadsheet http://drive.google.com
+* Создать или открыть документ Google Spreadsheets http://drive.google.com
 * В меню "Tools" выбрать "Script Editor"
 * Дать проекту имя, например `TinkoffTrades`
 * Скопировать код из [Code.gs](https://raw.githubusercontent.com/ErhoSen/gas-tinkoff-trades/master/Code.gs)
@@ -39,11 +39,11 @@
 =getTrades("V") 
 # Вернёт все операции с акцией Visa, которые произошли начиная с TRADING_START_AT и по текущий момент.
 =getTrades("V", "2020-05-01T00:00:00.000Z") 
-# Вернёт все операции с акцией Visa, которые произошли начиная с 1 мая и по текущий момент.
+# Вернёт все операции с акцией Visa, которые произошли начиная с 1 мая и по текущий моментs.
 =getTrades("V", "2020-05-01T00:00:00.000Z", "2020-05-05T23:59:59.999Z") 
 # Вернёт все операции с акцией Visa, которые произошли в период с 1 и по 5 мая.
 ```
 
-## DEMO-DEMO-DEMO
+## Пример работы
 
-![Get price by ticker in action]((https://github.com/ErhoSen/gas-tinkoff-trades/raw/master/images/get-price-by-ticker.gif)
+![Get price by ticker in action](https://github.com/ErhoSen/gas-tinkoff-trades/raw/master/images/get-price-by-ticker.gif)
