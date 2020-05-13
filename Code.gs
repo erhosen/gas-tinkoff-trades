@@ -1,5 +1,5 @@
-let scriptProperties = PropertiesService.getScriptProperties()
-let CACHE = CacheService.getScriptCache()
+const scriptProperties = PropertiesService.getScriptProperties()
+const CACHE = CacheService.getScriptCache()
 
 const OPENAPI_TOKEN = scriptProperties.getProperty('OPENAPI_TOKEN')
 const TRADING_START_AT = new Date('Apr 01, 2020 10:00:00')
@@ -8,7 +8,7 @@ const MILLIS_PER_DAY = 1000 * 60 * 60 * 24
 function isoToDate(dateStr){
   // How to format date string so that google scripts recognizes it?
   // https://stackoverflow.com/a/17253060
-  let str = dateStr.replace(/-/,'/').replace(/-/,'/').replace(/T/,' ').replace(/\+/,' \+').replace(/Z/,' +00')
+  const str = dateStr.replace(/-/,'/').replace(/-/,'/').replace(/T/,' ').replace(/\+/,' \+').replace(/Z/,' +00')
   return new Date(str)
 }
 
@@ -21,41 +21,41 @@ class TinkoffClient {
   }
   
   _makeApiCall(methodUrl) {
-    let url = this.baseUrl + methodUrl
+    const url = this.baseUrl + methodUrl
     Logger.log(`[API Call] ${url}`)
-    let params = {'escaping': false, 'headers': {'accept': 'application/json', "Authorization": `Bearer ${this.token}`}}
-    let response = UrlFetchApp.fetch(url, params)
+    const params = {'escaping': false, 'headers': {'accept': 'application/json', "Authorization": `Bearer ${this.token}`}}
+    const response = UrlFetchApp.fetch(url, params)
     if (response.getResponseCode() == 200)
       return JSON.parse(response.getContentText())
   }
   
   getInstrumentByTicker(ticker) {
-    let url = `market/search/by-ticker?ticker=${ticker}`
-    let data = this._makeApiCall(url)
+    const url = `market/search/by-ticker?ticker=${ticker}`
+    const data = this._makeApiCall(url)
     return data.payload.instruments[0]
   }
   
   getOrderbookByFigi(figi) {
-    let url = `market/orderbook?depth=1&figi=${figi}`
-    let data = this._makeApiCall(url)
+    const url = `market/orderbook?depth=1&figi=${figi}`
+    const data = this._makeApiCall(url)
     return data.payload
   }
   
   getOperations(from, to, figi) {
     // Arguments `from` && `to` should be in ISO 8601 format
-    let url = `operations?from=${from}&to=${to}&figi=${figi}`
-    let data = this._makeApiCall(url)
+    const url = `operations?from=${from}&to=${to}&figi=${figi}`
+    const data = this._makeApiCall(url)
     return data.payload.operations
   }
 }
 
-let tinkoffClient = new TinkoffClient(OPENAPI_TOKEN)
+const tinkoffClient = new TinkoffClient(OPENAPI_TOKEN)
 
 function _getFigiByTicker(ticker) {
-  let cached = CACHE.get(ticker)
+  const cached = CACHE.get(ticker)
   if (cached != null) 
     return cached
-  let {figi} = tinkoffClient.getInstrumentByTicker(ticker)
+  const {figi} = tinkoffClient.getInstrumentByTicker(ticker)
   CACHE.put(ticker, figi)
   return figi
 }
@@ -63,8 +63,8 @@ function _getFigiByTicker(ticker) {
 function getPriceByTicker(ticker, dummy) {
   // dummy attribute uses for auto-refreshing the value each time the sheet is updating.
   // see https://stackoverflow.com/a/27656313
-  let figi = _getFigiByTicker(ticker)
-  let {lastPrice} = tinkoffClient.getOrderbookByFigi(figi)
+  const figi = _getFigiByTicker(ticker)
+  const {lastPrice} = tinkoffClient.getOrderbookByFigi(figi)
   return lastPrice
 }
 
@@ -72,31 +72,31 @@ function _calculateTrades(trades) {
   let totalSum = 0
   let totalQuantity = 0
   for (let j in trades) {
-    let {quantity, price} = trades[j]
+    const {quantity, price} = trades[j]
     totalQuantity += quantity
     totalSum += quantity * price
   }
-  let weigthedPrice = totalSum / totalQuantity
+  const weigthedPrice = totalSum / totalQuantity
   return [totalQuantity, totalSum, weigthedPrice]
 }
 
 function getTrades(ticker, from, to) {
-  let figi = _getFigiByTicker(ticker)
+  const figi = _getFigiByTicker(ticker)
   if (!from) {
     from = TRADING_START_AT.toISOString()
   }
   if (!to) {
-    let now = new Date()
+    const now = new Date()
     to = new Date(now + MILLIS_PER_DAY)
     to = to.toISOString()
   }
-  let operations = tinkoffClient.getOperations(from, to, figi)
+  const operations = tinkoffClient.getOperations(from, to, figi)
   
-  let values = [
+  const values = [
     ["ID", "Date", "Operation", "Ticker", "Quantity", "Price", "Currency", "SUM", "Commission"], 
   ]
   for (let i=operations.length-1; i>=0; i--) {
-    let {operationType, status, trades, id, date, currency, commission} = operations[i]
+    const {operationType, status, trades, id, date, currency, commission} = operations[i]
     if (operationType == "BrokerCommission" || status == "Decline") 
       continue
     let [totalQuantity, totalSum, weigthedPrice] = _calculateTrades(trades) // calculate weighted values
@@ -112,6 +112,6 @@ function getTrades(ticker, from, to) {
 }
 
 function onEdit(e) {
-  let sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
   sheet.getRange('Z1').setValue(Math.random())
 }
