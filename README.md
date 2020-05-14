@@ -1,6 +1,5 @@
 # GAS Tinkoff Trades
-
-![getTrades in action](https://github.com/ErhoSen/gas-tinkoff-trades/raw/master/images/get-trades-in-action.gif "getTrades in Action")
+![GAS Tinkoff Trades main image](https://github.com/ErhoSen/gas-tinkoff-trades/raw/master/images/main-image.jpg "GAS Tinkoff Trades main image")
 
 Данный [Google Apps Script](https://developers.google.com/apps-script) предназначен для импорта сделок из Тинькофф Инвестиций прямо в Google таблицы, для последующего анализа. 
 
@@ -46,4 +45,8 @@
 
 ## Пример работы
 
+#### `=getTrades()`
+![getTrades in action](https://github.com/ErhoSen/gas-tinkoff-trades/raw/master/images/get-trades-in-action.gif "getTrades in Action")
+
+#### `=getPriceByTicker()`
 ![Get price by ticker in action](https://github.com/ErhoSen/gas-tinkoff-trades/raw/master/images/get-price-by-ticker.gif)
