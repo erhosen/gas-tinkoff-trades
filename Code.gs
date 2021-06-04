@@ -35,8 +35,8 @@ class TinkoffClient {
     return data.payload.instruments[0]
   }
   
-  getOrderbookByFigi(figi) {
-    const url = `market/orderbook?depth=1&figi=${figi}`
+  getOrderbookByFigi(figi, depth) {
+    const url = `market/orderbook?depth=${depth}&figi=${figi}`
     const data = this._makeApiCall(url)
     return data.payload
   }
@@ -64,8 +64,24 @@ function getPriceByTicker(ticker, dummy) {
   // dummy attribute uses for auto-refreshing the value each time the sheet is updating.
   // see https://stackoverflow.com/a/27656313
   const figi = _getFigiByTicker(ticker)
-  const {lastPrice} = tinkoffClient.getOrderbookByFigi(figi)
+  const {lastPrice} = tinkoffClient.getOrderbookByFigi(figi, 1)
   return lastPrice
+}
+
+function getMaxBidByTicker(ticker, dummy) {
+  // dummy attribute uses for auto-refreshing the value each time the sheet is updating.
+  // see https://stackoverflow.com/a/27656313
+  const figi = _getFigiByTicker(ticker)
+  const {bids} = tinkoffClient.getOrderbookByFigi(figi, 20)
+  return bids[0].price
+}
+
+function getMinAskByTicker(ticker, dummy) {
+  // dummy attribute uses for auto-refreshing the value each time the sheet is updating.
+  // see https://stackoverflow.com/a/27656313
+  const figi = _getFigiByTicker(ticker)
+  const {asks} = tinkoffClient.getOrderbookByFigi(figi, 20)
+  return asks[0].price
 }
 
 function _calculateTrades(trades) {
