@@ -113,7 +113,7 @@ function getTrades(ticker, from, to) {
   ]
   for (let i=operations.length-1; i>=0; i--) {
     const {operationType, status, trades, id, date, currency, commission} = operations[i]
-    if (operationType == "BrokerCommission" || status == "Decline") 
+    if (operationType == "BrokerCommission" || status == "Decline" || operationType == "Dividend")
       continue
     let [totalQuantity, totalSum, weigthedPrice] = _calculateTrades(trades) // calculate weighted values
     if (operationType == "Buy") {  // inverse values in a way, that it will be easier to work with
