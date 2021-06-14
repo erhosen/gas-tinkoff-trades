@@ -73,7 +73,10 @@ function getMaxBidByTicker(ticker, dummy) {
   // see https://stackoverflow.com/a/27656313
   const figi = _getFigiByTicker(ticker)
   const {bids} = tinkoffClient.getOrderbookByFigi(figi, 20)
-  return bids[0].price
+  return [
+    ["Max bid", "Quantity"],
+    [bids[0].price, bids[0].quantity]
+  ]
 }
 
 function getMinAskByTicker(ticker, dummy) {
@@ -81,7 +84,10 @@ function getMinAskByTicker(ticker, dummy) {
   // see https://stackoverflow.com/a/27656313
   const figi = _getFigiByTicker(ticker)
   const {asks} = tinkoffClient.getOrderbookByFigi(figi, 20)
-  return asks[0].price
+  return [
+    ["Min ask", "Quantity"],
+    [asks[0].price, asks[0].quantity]
+  ]
 }
 
 function _calculateTrades(trades) {
