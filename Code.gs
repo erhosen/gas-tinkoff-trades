@@ -126,8 +126,14 @@ function getTrades(ticker, from, to) {
       totalQuantity = -totalQuantity
       totalSum = -totalSum
     }
+    let com_val = 0
+    if (commission){
+      com_val = commission.value
+    }else{
+      com_val = null
+    }
     values.push([
-      id, isoToDate(date), operationType, ticker, totalQuantity, weigthedPrice, currency, totalSum, commission.value
+      id, isoToDate(date), operationType, ticker, totalQuantity, weigthedPrice, currency, totalSum, com_val
     ])
   }
   return values
