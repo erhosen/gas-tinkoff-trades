@@ -133,7 +133,19 @@ function getTrades(ticker, from, to) {
   return values
 }
 
-function onEdit(e) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet()
-  sheet.getRange('Z1').setValue(Math.random())
+/**
+ * Добавляет меню с командой вызова функции обновления значений служебной ячейки (для обновления вычислнений функций, ссылающихся на эту ячейку)
+ *
+ **/
+function onOpen() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet()
+  var entries = [{
+    name : "Обновить",
+    functionName : "refresh"
+  }]
+  sheet.addMenu("TI", entries)
+};
+
+function refresh() {
+  SpreadsheetApp.getActiveSpreadsheet().getRange('Z1').setValue(new Date());
 }
