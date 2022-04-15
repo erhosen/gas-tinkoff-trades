@@ -84,22 +84,28 @@ function getMaxBidByTicker(ticker, dummy) {
   // dummy attribute uses for auto-refreshing the value each time the sheet is updating.
   // see https://stackoverflow.com/a/27656313
   const figi = _getFigiByTicker(ticker)
-  const {bids} = tinkoffClient.getOrderbookByFigi(figi, 20)
-  return [
+  const {tradeStatus,bids} = tinkoffClient.getOrderbookByFigi(figi, 1)
+  if (tradeStatus != 'NotAvailableForTrading')
+    return [
     ["Max bid", "Quantity"],
     [bids[0].price, bids[0].quantity]
-  ]
+    ]
+  else
+    return null
 }
 
 function getMinAskByTicker(ticker, dummy) {
   // dummy attribute uses for auto-refreshing the value each time the sheet is updating.
   // see https://stackoverflow.com/a/27656313
   const figi = _getFigiByTicker(ticker)
-  const {asks} = tinkoffClient.getOrderbookByFigi(figi, 20)
-  return [
-    ["Min ask", "Quantity"],
-    [asks[0].price, asks[0].quantity]
-  ]
+  const {tradeStatus,asks} = tinkoffClient.getOrderbookByFigi(figi, 1)
+  if (tradeStatus != 'NotAvailableForTrading')
+    return [
+      ["Min ask", "Quantity"],
+      [asks[0].price, asks[0].quantity]
+    ]
+  else
+    return null
 }
 
 function _calculateTrades(trades) {
