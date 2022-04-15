@@ -80,6 +80,15 @@ function getPriceByTicker(ticker, dummy) {
   return lastPrice
 }
 
+function getBidAskSpreadByTicker(ticker) { // dummy parameter is optional
+  const figi = _getFigiByTicker(ticker)
+  const {tradeStatus,bids,asks} = tinkoffClient.getOrderbookByFigi(figi, 1)
+  if (tradeStatus != 'NotAvailableForTrading')
+    return (asks[0].price-bids[0].price) / asks[0].price
+  else
+    return null
+}
+
 function getMaxBidByTicker(ticker, dummy) {
   // dummy attribute uses for auto-refreshing the value each time the sheet is updating.
   // see https://stackoverflow.com/a/27656313
