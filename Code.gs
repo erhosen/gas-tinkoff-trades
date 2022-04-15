@@ -72,6 +72,12 @@ function _getFigiByTicker(ticker) {
   }
 }
 
+/**
+ * Получение последней цены инструмента по тикеру
+ * @param {"GAZP"} ticker Тикер инструмента
+ * @return {}             Last price
+ * @customfunction
+ */
 function getPriceByTicker(ticker, dummy) {
   // dummy attribute uses for auto-refreshing the value each time the sheet is updating.
   // see https://stackoverflow.com/a/27656313
@@ -80,6 +86,12 @@ function getPriceByTicker(ticker, dummy) {
   return lastPrice
 }
 
+/**
+ * Получение Bid/Ask спреда инструмента по тикеру
+ * @param {"GAZP"} ticker Тикер инструмента
+ * @return {0.03}         Спред в %
+ * @customfunction
+ */
 function getBidAskSpreadByTicker(ticker) { // dummy parameter is optional
   const figi = _getFigiByTicker(ticker)
   const {tradeStatus,bids,asks} = tinkoffClient.getOrderbookByFigi(figi, 1)
@@ -129,6 +141,14 @@ function _calculateTrades(trades) {
   return [totalQuantity, totalSum, weigthedPrice]
 }
 
+/**
+ * Получение списка операций по тикеру инструмента
+ * @param {String} ticker Тикер инструмента для фильтрации
+ * @param {String} from Начальная дата
+ * @param {String} to Конечная дата
+ * @return {Array} Массив результата
+ * @customfunction
+ */
 function getTrades(ticker, from, to) {
   const figi = _getFigiByTicker(ticker)
   if (!from) {
