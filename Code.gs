@@ -1,7 +1,11 @@
-const scriptProperties = PropertiesService.getScriptProperties()
-const CACHE = CacheService.getScriptCache()
+/** @OnlyCurrentDoc */
 
+const scriptProperties = PropertiesService.getScriptProperties()
 const OPENAPI_TOKEN = scriptProperties.getProperty('OPENAPI_TOKEN')
+
+const CACHE = CacheService.getScriptCache()
+const CACHE_MAX_AGE = 21600 // 6 Hours
+
 const TRADING_START_AT = new Date('Apr 01, 2020 10:00:00')
 const MILLIS_PER_DAY = 1000 * 60 * 60 * 24
 
@@ -32,7 +36,7 @@ class TinkoffClient {
   getInstrumentByTicker(ticker) {
     const url = `market/search/by-ticker?ticker=${ticker}`
     const data = this._makeApiCall(url)
-    return data.payload.instruments[0]
+    return data.payload
   }
   
   getOrderbookByFigi(figi, depth) {
@@ -52,12 +56,20 @@ class TinkoffClient {
 const tinkoffClient = new TinkoffClient(OPENAPI_TOKEN)
 
 function _getFigiByTicker(ticker) {
+  const CACHE_KEY_PREFIX = 'figi_'
+  const ticker_cache_key = CACHE_KEY_PREFIX + ticker
+
   const cached = CACHE.get(ticker)
   if (cached != null) 
     return cached
-  const {figi} = tinkoffClient.getInstrumentByTicker(ticker)
-  CACHE.put(ticker, figi)
-  return figi
+  const {instruments,total} = tinkoffClient.getInstrumentByTicker(ticker)
+  if (total > 0) {
+    const figi = instruments[0].figi
+    CACHE.put(ticker_cache_key, figi, CACHE_MAX_AGE)
+    return figi
+  } else {
+    return null
+  }
 }
 
 function getPriceByTicker(ticker, dummy) {
