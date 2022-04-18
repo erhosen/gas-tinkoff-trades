@@ -51,6 +51,12 @@ class TinkoffClient {
     const data = this._makeApiCall(url)
     return data.payload.operations
   }
+
+  getPortfolio(){
+    const url = `portfolio`
+    const data = this._makeApiCall(url)
+    return data.payload.positions
+  }
 }
 
 const tinkoffClient = new TinkoffClient(OPENAPI_TOKEN)
@@ -181,6 +187,30 @@ function getTrades(ticker, from, to) {
     }
     values.push([
       id, isoToDate(date), operationType, ticker, totalQuantity, weigthedPrice, currency, totalSum, com_val
+    ])
+  }
+  return values
+}
+
+/**
+ * Получение портфеля
+ * @return {Array}     Массив с результатами
+ * @customfunction
+ */
+function getPortfolio() {
+  const portfolio = tinkoffClient.getPortfolio()
+  const values = []
+  values.push(["Тикер","Название","Тип","Кол-во","Ср.цена покупки","Ст-ть покупки","Доходность","Тек.ст-ть","НКД","Валюта"])
+  for (let i=0; i<portfolio.length; i++) {
+    let {ticker, name, instrumentType, balance, averagePositionPrice, averagePositionPriceNoNkd, expectedYield} = portfolio [i]
+    let NKD=null
+    if (averagePositionPriceNoNkd){
+      NKD = averagePositionPrice.value - averagePositionPriceNoNkd.value
+      averagePositionPrice.value = averagePositionPriceNoNkd.value
+    }
+
+    values.push([
+      ticker, name, instrumentType, balance, averagePositionPrice.value, averagePositionPrice.value * balance, expectedYield.value, averagePositionPrice.value * balance + expectedYield.value, NKD, averagePositionPrice.currency
     ])
   }
   return values
