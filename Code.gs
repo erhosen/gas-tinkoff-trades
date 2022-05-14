@@ -9,6 +9,23 @@ const CACHE_MAX_AGE = 21600 // 6 Hours
 const TRADING_START_AT = new Date('Apr 01, 2020 10:00:00')
 const MILLIS_PER_DAY = 1000 * 60 * 60 * 24
 
+/**
+ * Добавляет меню с командой вызова функции обновления значений служебной ячейки (для обновления вычислнений функций, ссылающихся на эту ячейку)
+ *
+ **/
+function onOpen() {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet()
+  var entries = [{
+    name : "Обновить",
+    functionName : "refresh"
+  }]
+  sheet.addMenu("TI", entries)
+};
+
+function refresh() {
+  SpreadsheetApp.getActiveSpreadsheet().getRange('Z1').setValue(new Date());
+}
+
 function isoToDate(dateStr){
   // How to format date string so that google scripts recognizes it?
   // https://stackoverflow.com/a/17253060
@@ -216,19 +233,138 @@ function getPortfolio() {
   return values
 }
 
-/**
- * Добавляет меню с командой вызова функции обновления значений служебной ячейки (для обновления вычислнений функций, ссылающихся на эту ячейку)
- *
- **/
-function onOpen() {
-  var sheet = SpreadsheetApp.getActiveSpreadsheet()
-  var entries = [{
-    name : "Обновить",
-    functionName : "refresh"
-  }]
-  sheet.addMenu("TI", entries)
-};
-
-function refresh() {
-  SpreadsheetApp.getActiveSpreadsheet().getRange('Z1').setValue(new Date());
+/**  ============================== Tinkoff V2 ==============================
+*
+* https://tinkoff.github.io/investAPI/
+*
+**/
+class _TinkoffClientV2 {
+  constructor(token){
+    this.token = token
+    this.baseUrl = 'https://invest-public-api.tinkoff.ru/rest/'
+    //Logger.log(`[_TinkoffClientV2.constructor]`)
+  }
+  _makeApiCall(methodUrl,data){
+    const url = this.baseUrl + methodUrl
+    Logger.log(`[Tinkoff OpenAPI V2 Call] ${url}`)
+    const params = {
+      'method': 'post',
+      'headers': {'accept': 'application/json', 'Authorization': `Bearer ${this.token}`},
+      'contentType': 'application/json',
+      'payload' : JSON.stringify(data)}
+    
+    const response = UrlFetchApp.fetch(url, params)
+    if (response.getResponseCode() == 200)
+      return JSON.parse(response.getContentText())
+  }
+  // ----------------------------- InstrumentsService -----------------------------
+  _Bonds(instrumentStatus) {
+    const url = `tinkoff.public.invest.api.contract.v1.InstrumentsService/Bonds`
+    const data = this._makeApiCall(url, {'instrumentStatus': instrumentStatus})
+    return data
+  }
+  _Shares(instrumentStatus) {
+    const url = `tinkoff.public.invest.api.contract.v1.InstrumentsService/Shares`
+    const data = this._makeApiCall(url, {'instrumentStatus': instrumentStatus})
+    return data
+  }
+  _Futures(instrumentStatus) {
+    const url = `tinkoff.public.invest.api.contract.v1.InstrumentsService/Futures`
+    const data = this._makeApiCall(url, {'instrumentStatus': instrumentStatus})
+    return data
+  }
+  _Etfs(instrumentStatus) {
+    const url = `tinkoff.public.invest.api.contract.v1.InstrumentsService/Etfs`
+    const data = this._makeApiCall(url, {'instrumentStatus': instrumentStatus})
+    return data
+  }
+  _Currencies(instrumentStatus) {
+    const url = `tinkoff.public.invest.api.contract.v1.InstrumentsService/Currencies`
+    const data = this._makeApiCall(url, {'instrumentStatus': instrumentStatus})
+    return data
+  }
+  _GetInstrumentBy(idType,classCode,id) {
+    const url = `tinkoff.public.invest.api.contract.v1.InstrumentsService/GetInstrumentBy`
+    const data = this._makeApiCall(url, {'idType': idType, 'classCode': classCode, 'id': id})
+    return data
+  }
+  // ----------------------------- MarketDataService -----------------------------
+  _GetLastPrices(figi_arr) {
+    const url = 'tinkoff.public.invest.api.contract.v1.MarketDataService/GetLastPrices'
+    const data = this._makeApiCall(url,{'figi': figi_arr})
+    return data
+  }
+  _GetOrderBookByFigi(figi,depth) {
+    const url = `tinkoff.public.invest.api.contract.v1.MarketDataService/GetOrderBook`
+    const data = this._makeApiCall(url,{'figi': figi, 'depth': depth})
+    return data
+  }
+  // ----------------------------- OperationsService -----------------------------
+  _GetOperations(accountId,from,to,state,figi) {
+    const url = 'tinkoff.public.invest.api.contract.v1.OperationsService/GetOperations'
+    const data = this._makeApiCall(url,{'accountId': accountId,'from': from,'to': to,'state': state,'figi': figi})
+    return data
+  }
+  _GetPortfolio(accountId) {
+    const url = 'tinkoff.public.invest.api.contract.v1.OperationsService/GetPortfolio'
+    const data = this._makeApiCall(url,{'accountId': accountId})
+    return data
+  }
+  // ----------------------------- UsersService -----------------------------
+  _GetAccounts() {
+    const url = 'tinkoff.public.invest.api.contract.v1.UsersService/GetAccounts'
+    const data = this._makeApiCall(url,{})
+    return data
+  }
+  _GetInfo() {
+    const url = 'tinkoff.public.invest.api.contract.v1.UsersService/GetInfo'
+    const data = this._makeApiCall(url,{})
+    return data
+  }
 }
+
+const tinkoffClientV2 = new _TinkoffClientV2(OPENAPI_TOKEN)
+
+function _GetTickerNameByFIGI(figi) {
+  //Logger.log(`[TI_GetTickerByFIGI] figi=${figi}`)   // DEBUG
+  const {ticker,name} = tinkoffClientV2._GetInstrumentBy('INSTRUMENT_ID_TYPE_FIGI',null,figi).instrument
+  return [ticker,name]
+}
+
+function TI_GetLastPrice(ticker) {
+  const figi = _getFigiByTicker(ticker)    // Tinkoff API v1 function !!!
+  if (figi) {
+    const data = tinkoffClientV2._GetLastPrices([figi])
+    return Number(data.lastPrices[0].price.units) + data.lastPrices[0].price.nano/1000000000
+  }
+}
+
+function TI_GetAccounts() {
+  const data = tinkoffClientV2._GetAccounts()
+
+  return data.accounts[0].id //FIXME!!!
+}
+
+function TI_GetPortfolio(accountId) {
+  const portfolio = tinkoffClientV2._GetPortfolio(accountId)
+  const values = []
+  values.push(["FIGI","Название","Тип","Кол-во","Ср.цена покупки","Валюта","Доходность","Тек.цена","Валюта","НКД","Валюта"])
+  for (let i=0; i<portfolio.positions.length; i++) {
+    const [ticker,name] = _GetTickerNameByFIGI(portfolio.positions[i].figi)
+    values.push([
+      ticker,
+      name,
+      portfolio.positions[i].instrumentType,
+      Number(portfolio.positions[i].quantity.units) + portfolio.positions[i].quantity.nano/1000000000,
+      Number(portfolio.positions[i].averagePositionPrice.units) + portfolio.positions[i].averagePositionPrice.nano/1000000000,
+      portfolio.positions[i].averagePositionPrice.currency,
+      Number(portfolio.positions[i].expectedYield.units) + portfolio.positions[i].expectedYield.nano/1000000000,
+      Number(portfolio.positions[i].currentPrice.units) + portfolio.positions[i].currentPrice.nano/1000000000,
+      portfolio.positions[i].currentPrice.currency,
+      Number(portfolio.positions[i].currentNkd.units) + portfolio.positions[i].currentNkd.nano/1000000000,
+      portfolio.positions[i].currentNkd.currency
+    ])
+  }
+  return values
+}
+
