@@ -331,6 +331,21 @@ function _GetTickerNameByFIGI(figi) {
   return [ticker,name]
 }
 
+function TI_GetInstrumentsID() {
+  const AllInstruments = tinkoffClientV2._Bonds('INSTRUMENT_STATUS_BASE').instruments.concat(tinkoffClientV2._Shares('INSTRUMENT_STATUS_BASE').instruments, tinkoffClientV2._Futures('INSTRUMENT_STATUS_BASE').instruments, tinkoffClientV2._Etfs('INSTRUMENT_STATUS_BASE').instruments)
+  Logger.log(`[TI_GetInstrumentsID()] Number of instruments: ${AllInstruments.length}`)
+
+  const values = []
+  values.push(["Тикер","Название","Класс","FIGI","ISIN"])
+
+  for (let i=0; i < AllInstruments.length; i++) {
+    values.push([
+      AllInstruments[i].ticker,AllInstruments[i].name,AllInstruments[i].classCode,AllInstruments[i].figi,AllInstruments[i].isin
+    ])
+  }
+  return values
+}
+
 function TI_GetLastPrice(ticker) {
   const figi = _getFigiByTicker(ticker)    // Tinkoff API v1 function !!!
   if (figi) {
