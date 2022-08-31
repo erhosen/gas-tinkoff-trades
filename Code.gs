@@ -336,11 +336,11 @@ function TI_GetInstrumentsID() {
   Logger.log(`[TI_GetInstrumentsID()] Number of instruments: ${AllInstruments.length}`)
 
   const values = []
-  values.push(["Тикер","Название","Класс","FIGI","ISIN"])
+  values.push(["Тикер","FIGI","Название","Класс","Биржа","Валюта","Лот","ISIN","UID"])
 
   for (let i=0; i < AllInstruments.length; i++) {
     values.push([
-      AllInstruments[i].ticker,AllInstruments[i].name,AllInstruments[i].classCode,AllInstruments[i].figi,AllInstruments[i].isin
+      AllInstruments[i].ticker,AllInstruments[i].figi,AllInstruments[i].name,AllInstruments[i].classCode,AllInstruments[i].exchange,AllInstruments[i].currency,AllInstruments[i].lot,AllInstruments[i].isin,AllInstruments[i].uid
     ])
   }
   return values
