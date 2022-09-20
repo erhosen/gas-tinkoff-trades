@@ -305,6 +305,11 @@ class _TinkoffClientV2 {
     const data = this._makeApiCall(url,{'accountId': accountId,'from': from,'to': to,'state': state,'figi': figi})
     return data
   }
+  _GetOperationsByCursor(accountId,instrument_id,from,to,cursor,limit,operation_types,state,without_commissions,without_trades,without_overnights) {
+    const url = 'tinkoff.public.invest.api.contract.v1.OperationsService/GetOperationsByCursor'
+    const data = this._makeApiCall(url,{'accountId':accountId,'instrument_id':instrument_id,'from':from,'to':to,'cursor':cursor,'limit':limit,'operation_types':operation_types,'state':state,'without_commissions':without_commissions,'without_trades':without_trades,'without_overnights':without_overnights})
+    return data
+  }
   _GetPortfolio(accountId) {
     const url = 'tinkoff.public.invest.api.contract.v1.OperationsService/GetPortfolio'
     const data = this._makeApiCall(url,{'accountId': accountId})
