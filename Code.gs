@@ -360,10 +360,16 @@ function TI_GetAccounts() {
   return data.accounts[0].id //FIXME!!!
 }
 
+/**
+ * Получение портфеля
+ * @param {"12345678"} accountId  Номер брокерского счета
+ * @return {Array}                Массив с результатами
+ * @customfunction
+ **/
 function TI_GetPortfolio(accountId) {
   const portfolio = tinkoffClientV2._GetPortfolio(accountId)
   const values = []
-  values.push(["FIGI","Название","Тип","Кол-во","Ср.цена покупки","Валюта","Доходность","Тек.цена","Валюта","НКД","Валюта"])
+  values.push(["Тикер","Название","Тип","Кол-во","Ср.цена покупки","Валюта","Доходность","Тек.цена","Валюта","НКД","Валюта"])
   for (let i=0; i<portfolio.positions.length; i++) {
     const [ticker,name] = _GetTickerNameByFIGI(portfolio.positions[i].figi)
     values.push([
@@ -379,6 +385,108 @@ function TI_GetPortfolio(accountId) {
       Number(portfolio.positions[i].currentNkd.units) + portfolio.positions[i].currentNkd.nano/1000000000,
       portfolio.positions[i].currentNkd.currency
     ])
+  }
+  return values
+}
+
+function _TI_CalculateTrades(trades) {
+  let totalSum = 0
+  let totalQuantity = 0
+  for (let j in trades) {
+    const {quantity, price} = trades[j]
+    let price_val = Number(price.units) + price.nano/1000000000
+    totalQuantity += Number(quantity)
+    totalSum += Number(quantity) * price_val
+  }
+  const weigthedPrice = totalSum / totalQuantity
+  return [totalQuantity, totalSum, weigthedPrice]
+}
+
+/**
+ * Получение операций по счету
+ * @param {"12345678"} accountId  Номер брокерского счета
+ * @param {2020-02-20} from_param [From date] - Optional
+ * @param {2020-12-31} to_param   [To date] - Optional
+ * @return {Array}                Массив с результатами
+ * @customfunction
+ **/
+function TI_GetOperations(accountId,from_param, to_param) {
+  const limit = 50
+
+  const values = []
+  if (!from_param){
+    from = TRADING_START_AT.toISOString()
+  } else {
+    from = from_param.toISOString()
+  }
+  if (!to_param){
+    to = new Date(new Date() + MILLIS_PER_DAY).toISOString()
+  } else {
+    to = to_param.toISOString()
+  }
+  
+  let hasNext = false, nextCursor = null
+
+  do {
+    // _GetOperationsByCursor(accountId,instrument_id,from,to,cursor,limit,operation_types,state,without_commissions,without_trades,without_overnights)
+    const data = tinkoffClientV2._GetOperationsByCursor(accountId, null, from, to, nextCursor, limit,['OPERATION_TYPE_UNSPECIFIED'],'OPERATION_STATE_EXECUTED',true,true,true)
+    if (!data.code) {
+      // Logger.log(`[TI_GetOperations] items.length=${data.items.length}`) // DEBUG!!!
+      hasNext = data.hasNext
+      nextCursor = data.nextCursor
+
+      for (let i=0; i<data.items.length; i++) {
+        const {date, type, tradesInfo, figi, payment, price, quantity, commission, accruedInt} = data.items[i]
+
+        let payment_val = Number(payment.units)+payment.nano/1000000000
+        let accruedInt_val = Number(accruedInt.units)+accruedInt.nano/1000000000
+
+        let com_val = Number(commission.units)+commission.nano/1000000000
+        let full_payment_val = payment_val + com_val
+
+        if(tradesInfo) {
+          [totalQuantity, totalSum, weigthedPrice] = _TI_CalculateTrades(tradesInfo.trades)
+        } else {
+          totalQuantity = Number(quantity)
+          weigthedPrice = Number(price.units)+price.nano/1000000000
+          totalSum = totalQuantity * weigthedPrice
+        }
+
+        if ((type == "OPERATION_TYPE_SELL") || (type == "OPERATION_TYPE_SELL_CARD") || (type == "OPERATION_TYPE_SELL_MARGIN")) {
+          totalQuantity = -totalQuantity
+          totalSum = -totalSum
+        }
+      
+        if (!totalQuantity) {
+          totalQuantity=null
+          totalSum=null
+          weigthedPrice=null
+        }
+
+        if (!accruedInt_val) {
+          accruedInt_val = null
+        }
+
+        if (!com_val) {
+          com_val = null
+        }
+
+        var ticker, name
+        if (!figi) {
+          ticker = null
+        } else {
+          [ticker,name] = _GetTickerNameByFIGI(figi)
+        }
+
+        values.unshift([isoToDate(date), ticker, type.replace('OPERATION_TYPE_',''), totalQuantity, weigthedPrice, totalSum, accruedInt_val, payment_val, com_val, full_payment_val, payment.currency])
+      }
+    } else {
+      throw('error: ',data.message)
+    }
+  } while (hasNext)
+
+  if (!from_param){
+    values.unshift(["Дата","Тикер","Операция","Кол-во","Цена (средн)","Стоимость","НКД (T+)","Итого","Комиссия","Итого (с комисс.)","Валюта"])
   }
   return values
 }
