@@ -17,7 +17,13 @@
 
 На этом всё. Теперь при работе с этим документом на всех листах будут доступны функции:
 * API v1: `getPriceByTicker()`, `getTrades()`, `getPortfolio()`, `getMaxBidByTicker()`, `getMinAskByTicker()` и `getBidAskSpread()`
-* API v2: `TI_GetInstrumentsID()`, `TI_GetLastPrice()`, `TI_GetBidAskSpread()`, `TI_GetPortfolio()`
+* API v2: `TI_GetAccounts()`, `TI_GetInstrumentsID()`, `TI_GetLastPrice()`, `TI_GetPortfolio()`, `TI_GetOperations()`, `TI_GetBidAskSpread()`
+
+## Функции API v2
+
+* `=TI_GetOperations(accountId, from, to)` - выводит портфель по заданному номеру счета (можно получить через функцию `TI_GetAccounts()`) и, опционально, фильтрацию по времени. Параметры `from` и `to` являются ссылками на ячейки с типом Дата.
+
+* `=TI_GetPortfolio(accountId)` - выводит портфель по заданному номеру счета (можно получить через функцию `TI_GetAccounts()`.
 
 ## Функции API v1 (перестанет работать в 2023 году)
 
