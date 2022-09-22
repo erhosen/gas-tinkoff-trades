@@ -366,6 +366,23 @@ function TI_GetAccounts() {
 }
 
 /**
+ * Получение Bid/Ask спреда инструмента по тикеру
+ * @param {"GAZP"} ticker Тикер инструмента
+ * @return {0.03}         Спред в %
+ * @customfunction
+ */
+function TI_GetBidAskSpread(ticker) {
+  const figi = _getFigiByTicker(ticker)
+  if(figi) {
+    const {depth,bids,asks} = tinkoffClientV2._GetOrderBookByFigi(figi, 1)
+    if ((bids.length > 0) && (asks.length > 0))
+      return ((Number(asks[0].price.units)+asks[0].price.nano/1000000000) - (Number(bids[0].price.units)+bids[0].price.nano/1000000000)) / (Number(asks[0].price.units) + asks[0].price.nano/1000000000)
+    else
+      return null
+  }
+}
+
+/**
  * Получение портфеля
  * @param {"12345678"} accountId  Номер брокерского счета
  * @return {Array}                Массив с результатами
