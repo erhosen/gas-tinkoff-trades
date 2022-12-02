@@ -391,21 +391,30 @@ function TI_GetBidAskSpread(ticker) {
 function TI_GetPortfolio(accountId) {
   const portfolio = tinkoffClientV2._GetPortfolio(accountId)
   const values = []
-  values.push(["Тикер","Название","Тип","Кол-во","Ср.цена покупки","Валюта","Доходность","Тек.цена","Валюта","НКД","Валюта"])
+  values.push(["Тикер","Название","Тип","Кол-во","Ср.цена покупки","Ст-ть покупки","Валюта","Доход","Тек.ст-ть","Валюта","НКД","Валюта"])
   for (let i=0; i<portfolio.positions.length; i++) {
     const [ticker,name] = _GetTickerNameByFIGI(portfolio.positions[i].figi)
+    let quantity = Number(portfolio.positions[i].quantity.units) + portfolio.positions[i].quantity.nano/1000000000
+    let averagePositionPrice = Number(portfolio.positions[i].averagePositionPrice.units) + portfolio.positions[i].averagePositionPrice.nano/1000000000
+    let currentNkd=null
+    let currentNkd_currency=null
+    if(portfolio.positions[i].currentNkd) {
+      currentNkd = Number(portfolio.positions[i].currentNkd.units) + portfolio.positions[i].currentNkd.nano/1000000000
+      currentNkd_currency = portfolio.positions[i].currentNkd.currency
+    }
     values.push([
       ticker,
       name,
       portfolio.positions[i].instrumentType,
-      Number(portfolio.positions[i].quantity.units) + portfolio.positions[i].quantity.nano/1000000000,
-      Number(portfolio.positions[i].averagePositionPrice.units) + portfolio.positions[i].averagePositionPrice.nano/1000000000,
+      quantity,
+      averagePositionPrice,
+      quantity * averagePositionPrice,
       portfolio.positions[i].averagePositionPrice.currency,
       Number(portfolio.positions[i].expectedYield.units) + portfolio.positions[i].expectedYield.nano/1000000000,
-      Number(portfolio.positions[i].currentPrice.units) + portfolio.positions[i].currentPrice.nano/1000000000,
+      (Number(portfolio.positions[i].currentPrice.units) + portfolio.positions[i].currentPrice.nano/1000000000) * quantity,
       portfolio.positions[i].currentPrice.currency,
-      Number(portfolio.positions[i].currentNkd.units) + portfolio.positions[i].currentNkd.nano/1000000000,
-      portfolio.positions[i].currentNkd.currency
+      currentNkd,
+      currentNkd_currency
     ])
   }
   return values
