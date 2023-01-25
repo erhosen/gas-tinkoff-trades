@@ -253,9 +253,26 @@ class _TinkoffClientV2 {
       'contentType': 'application/json',
       'payload' : JSON.stringify(data)}
     
-    const response = UrlFetchApp.fetch(url, params)
-    if (response.getResponseCode() == 200)
-      return JSON.parse(response.getContentText())
+    let respCode, respText, rateLimited;
+    do {
+      const response = UrlFetchApp.fetch(url, params);
+      const respHeaders = response.getAllHeaders();
+      respCode = response.getResponseCode();
+      respText = response.getContentText("UTF-8");
+      
+      rateLimited = Boolean(respHeaders['x-envoy-ratelimited']); // {x-ratelimit-reset, x-envoy-ratelimited, x-ratelimit-remaining}
+      if (rateLimited) { // Выжидаем конец периода квоты запросов
+        const timeToWait = 500+1000*Number(respHeaders ['x-ratelimit-reset']);
+        Utilities.sleep(timeToWait);
+        Logger.log(`Ожидаем конца квоты запросов ${timeToWait} сек`);
+      }
+    } while (rateLimited)
+
+    const respObj = JSON.parse(respText);
+    if ( respCode == 200)
+      return respObj
+    else
+      throw new Error(`Ошибка ${respCode} - ${respObj.message} - ${respObj.description}`);
   }
   // ----------------------------- InstrumentsService -----------------------------
   _Bonds(instrumentStatus) {
