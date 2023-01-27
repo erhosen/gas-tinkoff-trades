@@ -263,8 +263,8 @@ class _TinkoffClientV2 {
       rateLimited = Boolean(respHeaders['x-envoy-ratelimited']); // {x-ratelimit-reset, x-envoy-ratelimited, x-ratelimit-remaining}
       if (rateLimited) { // Выжидаем конец периода квоты запросов
         const timeToWait = 500+1000*Number(respHeaders ['x-ratelimit-reset']);
+        Logger.log(`Ожидаем конца квоты запросов ${timeToWait} милисек`);
         Utilities.sleep(timeToWait);
-        Logger.log(`Ожидаем конца квоты запросов ${timeToWait} сек`);
       }
     } while (rateLimited)
 
