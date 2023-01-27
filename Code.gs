@@ -368,11 +368,17 @@ function TI_GetInstrumentsID() {
   return values
 }
 
-function TI_GetLastPrice(ticker) {
-  const figi = _getFigiByTicker(ticker)    // Tinkoff API v1 function !!!
+function TI_GetLastPriceByFigi(figi) {
   if (figi) {
     const data = tinkoffClientV2._GetLastPrices([figi])
     return Number(data.lastPrices[0].price.units) + data.lastPrices[0].price.nano/1000000000
+  }
+}
+
+function TI_GetLastPrice(ticker) {
+  const figi = _getFigiByTicker(ticker)    // Tinkoff API v1 function !!!
+  if (figi) {
+    return TI_GetLastPriceByFigi(figi)
   }
 }
 
