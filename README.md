@@ -18,7 +18,7 @@
 
 На этом всё. Теперь при работе с этим документом на всех листах будут доступны функции:
 * API v1: `getPriceByTicker()`, `getTrades()`, `getPortfolio()`, `getMaxBidByTicker()`, `getMinAskByTicker()` и `getBidAskSpread()`
-* API v2: `TI_GetAccounts()`, `TI_GetInstrumentsID()`, `TI_GetLastPrice()`, `TI_GetPortfolio()`, `TI_GetOperations()`, `TI_GetBidAskSpread()`
+* API v2: `TI_GetAccounts()`, `TI_GetInstrumentsID()`, `TI_GetLastPriceByFigi()`, `TI_GetLastPriceByTicker()`, `TI_GetPortfolio()`, `TI_GetOperations()`, `TI_GetBidAskSpread()`
 
 ## Функции API v2
 

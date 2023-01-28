@@ -364,8 +364,17 @@ function _GetTickerNameByFIGI(figi) {
   return [ticker,name]
 }
 
+/**
+ * Получение таблицы торгуемых активов.
+ * @return {Array}     Массив с результатами
+ * @customfunction
+ */
 function TI_GetInstrumentsID() {
-  const AllInstruments = tinkoffClientV2._Bonds('INSTRUMENT_STATUS_BASE').instruments.concat(tinkoffClientV2._Shares('INSTRUMENT_STATUS_BASE').instruments, tinkoffClientV2._Futures('INSTRUMENT_STATUS_BASE').instruments, tinkoffClientV2._Etfs('INSTRUMENT_STATUS_BASE').instruments)
+  const AllInstruments = tinkoffClientV2._Bonds('INSTRUMENT_STATUS_BASE').instruments.concat(
+    tinkoffClientV2._Shares('INSTRUMENT_STATUS_BASE').instruments,
+    tinkoffClientV2._Futures('INSTRUMENT_STATUS_BASE').instruments,
+    tinkoffClientV2._Etfs('INSTRUMENT_STATUS_BASE').instruments
+  );
   Logger.log(`[TI_GetInstrumentsID()] Number of instruments: ${AllInstruments.length}`)
 
   const values = []
@@ -373,12 +382,26 @@ function TI_GetInstrumentsID() {
 
   for (let i=0; i < AllInstruments.length; i++) {
     values.push([
-      AllInstruments[i].ticker,AllInstruments[i].figi,AllInstruments[i].name,AllInstruments[i].classCode,AllInstruments[i].exchange,AllInstruments[i].currency,AllInstruments[i].lot,AllInstruments[i].isin,AllInstruments[i].uid
+      AllInstruments[i].ticker,
+      AllInstruments[i].figi,
+      AllInstruments[i].name,
+      AllInstruments[i].classCode,
+      AllInstruments[i].exchange,
+      AllInstruments[i].currency,
+      AllInstruments[i].lot,
+      AllInstruments[i].isin,
+      AllInstruments[i].uid
     ])
   }
   return values
 }
 
+/**
+ * Получение цены последней сделки по FIGI актива.
+ * @param {"TCS00A102EQ8"} figi FIGI инструмента
+ * @return {Number}     Цена последней сделки
+ * @customfunction
+ */
 function TI_GetLastPriceByFigi(figi) {
   if (figi) {
     const data = tinkoffClientV2._GetLastPrices([figi])
@@ -386,17 +409,53 @@ function TI_GetLastPriceByFigi(figi) {
   }
 }
 
-function TI_GetLastPrice(ticker) {
+/**
+ * Получение цены последней сделки по тикеру актива.
+ * @param {"TSPX"} ticker Тикер инструмента
+ * @return {Number}       Цена последней сделки
+ * @customfunction
+ */
+function TI_GetLastPriceByTicker(ticker) {
   const figi = _getFigiByTicker(ticker)    // Tinkoff API v1 function !!!
   if (figi) {
     return TI_GetLastPriceByFigi(figi)
   }
 }
 
+/**
+ * Получение номеров счетов, доступных для скрипта.
+ * @return {Array}     Массив с результатами
+ * @customfunction
+ */
 function TI_GetAccounts() {
   const data = tinkoffClientV2._GetAccounts()
 
-  return data.accounts[0].id //FIXME!!!
+  const values = []
+  values.push(["Name","Status","id","type","access level","opened date","closed date"])
+
+  for (let i=0; i < data.accounts.length; i++) {
+    values.push([
+      data.accounts[i].name,
+      data.accounts[i].status,
+      data.accounts[i].id,
+      data.accounts[i].type,
+      data.accounts[i].accessLevel,
+      new Date(data.accounts[i].openedDate),
+      ((data.accounts[i].closedDate == '1970-01-01T00:00:00Z') ? '' : new Date(data.accounts[i].closedDate)),
+    ]);
+    
+  }
+  return values
+}
+
+/**
+ * Получение номера первого из доступных счетов.
+ * @return {String}     Номер первого доступного счета
+ * @customfunction
+ */
+function TI_GetFirstAccount() {
+  const accounts = TI_GetAccounts();
+  return accounts[0].id;
 }
 
 /**
