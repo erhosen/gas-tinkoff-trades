@@ -22,8 +22,19 @@ function onOpen() {
   sheet.addMenu("TI", entries)
 };
 
+function _convertRangeToOneCell(range){
+  if (range == null) return;
+  if (range.getA1Notation == undefined) return;   // range should be the instance of Range
+  return range.getCell(1, 1);
+}
+
 function refresh() {
-  SpreadsheetApp.getActiveSpreadsheet().getRange('Z1').setValue(new Date());
+  const updateDateRange = _convertRangeToOneCell(SpreadsheetApp.getActiveSpreadsheet().getRangeByName('UPDATE_DATE'));
+  if (updateDateRange != null) {
+    updateDateRange.setValue(new Date());
+  } else {
+    SpreadsheetApp.getUi().ui.alert('You should specify the named range "UPDATE_DATE" for using this function.');
+  }
 }
 
 function isoToDate(dateStr){
