@@ -228,17 +228,19 @@ function getTrades(ticker, from, to) {
 function getPortfolio() {
   const portfolio = tinkoffClient.getPortfolio()
   const values = []
-  values.push(["Тикер","Название","Тип","Кол-во","Ср.цена покупки","Ст-ть покупки","Доходность","Тек.ст-ть","НКД","Валюта"])
+  values.push(["Тикер","Название","Тип","Кол-во","Ср.цена покупки","Ст-ть покупки","Валюта","Доход","Тек.ст-ть","Валюта","НКД","Валюта"])
   for (let i=0; i<portfolio.length; i++) {
     let {ticker, name, instrumentType, balance, averagePositionPrice, averagePositionPriceNoNkd, expectedYield} = portfolio [i]
     let NKD=null
+    let NKD_Curr=null
     if (averagePositionPriceNoNkd){
       NKD = averagePositionPrice.value - averagePositionPriceNoNkd.value
       averagePositionPrice.value = averagePositionPriceNoNkd.value
+      NKD_Curr = averagePositionPriceNoNkd.currency
     }
 
     values.push([
-      ticker, name, instrumentType, balance, averagePositionPrice.value, averagePositionPrice.value * balance, expectedYield.value, averagePositionPrice.value * balance + expectedYield.value, NKD, averagePositionPrice.currency
+      ticker, name, instrumentType, balance, averagePositionPrice.value, averagePositionPrice.value * balance, averagePositionPrice.currency, expectedYield.value, averagePositionPrice.value * balance + expectedYield.value, averagePositionPrice.currency, NKD, NKD_Curr
     ])
   }
   return values
@@ -396,7 +398,21 @@ function TI_GetLastPrice(ticker) {
 function TI_GetAccounts() {
   const data = tinkoffClientV2._GetAccounts()
 
-  return data.accounts[0].id //FIXME!!!
+  const values = []
+  values.push(["ID","Тип","Название","Статус","Открыт","Права доступа"])
+  for (let i=0; i<data.accounts.length; i++) {
+    values.push([data.accounts[i].id, data.accounts[i].type.replace('ACCOUNT_TYPE_',''), data.accounts[i].name, data.accounts[i].status.replace('ACCOUNT_STATUS_',''), isoToDate(data.accounts[i].openedDate), data.accounts[i].accessLevel.replace('ACCOUNT_ACCESS_LEVEL_','')])
+  }
+  
+  return values
+}
+
+function TI_GetAccountID(accountNum) {
+  if(accountNum >= 0) {
+    const data = tinkoffClientV2._GetAccounts()
+
+    return data.accounts[accountNum].id
+  }
 }
 
 /**
