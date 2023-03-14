@@ -17,8 +17,8 @@
 * В документе Google Spreadsheets выбрать любую ненужную ячейку и присвоить ей имя `UPDATE_DATE` с помощью меню `Data`->`Named ranges`->`Add named range`. В эту ячейку по команде меню TI->Обновить вставляется текущая дата. Данная ячейка может использоваться в качестве необязательного параметра `dummy` любой функции для [принудительного обновления формул](https://stackoverflow.com/a/27656313).
 
 На этом всё. Теперь при работе с этим документом на всех листах будут доступны функции:
+* API v2: `TI_GetAccounts()`, `TI_GetAccountID()`, `TI_GetInstrumentsID()`, `TI_GetLastPriceByFigi()`, `TI_GetLastPrice()`, `TI_GetPortfolio()`, `TI_GetOperations()` и `TI_GetBidAskSpread()`
 * API v1: `getPriceByTicker()`, `getTrades()`, `getPortfolio()`, `getMaxBidByTicker()`, `getMinAskByTicker()` и `getBidAskSpread()`
-* API v2: `TI_GetAccounts()`, `TI_GetInstrumentsID()`, `TI_GetLastPrice()`, `TI_GetPortfolio()`, `TI_GetOperations()`, `TI_GetBidAskSpread()`
 
 ## Функции API v2
 
@@ -26,7 +26,7 @@
 
 * `=TI_GetPortfolio(accountId)` - выводит портфель по заданному номеру счета (можно получить через функцию `TI_GetAccounts()`.
 
-## Функции API v1 (перестанет работать в 2023 году)
+## Функции API v1 (перестанут работать в 2023 году)
 
 * `=getPriceByTicker(ticker, dummy)` - требует на вход [тикер](https://ru.wikipedia.org/wiki/%D0%A2%D0%B8%D0%BA%D0%B5%D1%80), и опциональный параметр `dummy`. Для автоматичекого обновления необходимо указать в качестве `dummy` ячейку `Z1` (которая будет обновлятся через меню TI).
 
