@@ -17,20 +17,22 @@
 * В документе Google Spreadsheets выбрать любую ненужную ячейку и присвоить ей имя `UPDATE_DATE` с помощью меню `Data`->`Named ranges`->`Add named range`. В эту ячейку по команде меню TI->Обновить вставляется текущая дата. Данная ячейка может использоваться в качестве необязательного параметра `UPDATE_DATE` любой функции для [принудительного обновления формул](https://stackoverflow.com/a/27656313). Например, при использовании функции `TI_GetLastPriceByFigi("BBG004730RP0",UPDATE_DATE)` можно реализовать обновление цены акции "Газпром" по команде меню TI->Обновить.
 
 На этом всё. Теперь при работе с этим документом на всех листах будут доступны функции:
-* API v2: `TI_GetAccounts()`, `TI_GetAccountID()`, `TI_GetInstrumentsID()`, `TI_GetLastPriceByFigi()`, `TI_GetLastPrice()`, `TI_GetPortfolio()`, `TI_GetOperations()` и `TI_GetBidAskSpread()`
+* API v2: `TI_GetAccounts()`, `TI_GetAccountID()`, `TI_GetInstrumentsID()`, `TI_GetLastPriceByFigi()`, `TI_GetPortfolio()`, `TI_GetOperations()`, `TI_GetBidAskSpread()` и `TI_GetLastPrice()` (использует API v1 и может перестать работать)
 * API v1: `getPriceByTicker()`, `getTrades()`, `getPortfolio()`, `getMaxBidByTicker()`, `getMinAskByTicker()` и `getBidAskSpread()`
 
 ## Функции API v2
 
-* `TI_GetAccounts()` - получение списка счетов
+* `TI_GetAccounts()` - получение информации по счетам (идентификатор, тип, название, статус, дата открытия, права доступа).
+
+* `TI_GetAccountID(accountNum)` - возвращает идентификатор счета по его порядковому номеру (начиная с 0).
 
 * `=TI_GetLastPriceByFigi(FIGI, UPDATE_DATE)` - требует на вход FIGI инструмента (может быть получен через `=VLOOKUP()` по отдельной вкладке с информацией по всем инструментам, полученной вызовом `TI_GetInstrumentsID()`) и опциональный параметр с именем ячейки `UPDATE_DATE`, которая будет обновлятся через меню TI->Обновить).
 
 * `=TI_GetInstrumentsID()` - выводит информацию по всем инструментам, включая их тикер, FIGI, класс, биржу, валюту и ISIN.
 
-* `=TI_GetOperations(accountId, from, to)` - выводит операции по заданному номеру счета (можно получить через функцию `TI_GetAccounts()`) и, опционально, фильтрацию по времени. Параметры `from` и `to` являются ссылками на ячейки с типом Дата.
+* `=TI_GetOperations(accountId, from, to)` - выводит операции по заданному идентификатору счета (можно получить через функцию `TI_GetAccounts()`) и, опционально, фильтрацию по времени. Параметры `from` и `to` являются ссылками на ячейки с типом Дата.
 
-* `=TI_GetPortfolio(accountId)` - выводит портфель по заданному номеру счета (можно получить через функцию `TI_GetAccounts()`.
+* `=TI_GetPortfolio(accountId)` - выводит портфель по заданному идентификатору счета (можно получить через функцию `TI_GetAccounts()`.
 
 ## Функции API v1 (перестанут работать в 2023 году)
 
