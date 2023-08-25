@@ -264,7 +264,9 @@ class _TinkoffClientV2 {
       'method': 'post',
       'headers': {'accept': 'application/json', 'Authorization': `Bearer ${this.token}`},
       'contentType': 'application/json',
-      'payload' : JSON.stringify(data)}
+      'payload' : JSON.stringify(data),
+      'muteHttpExceptions': true
+    }
     
     let respCode, respText, rateLimited;
     do {
@@ -276,8 +278,9 @@ class _TinkoffClientV2 {
       rateLimited = Boolean(respHeaders['x-envoy-ratelimited']); // {x-ratelimit-reset, x-envoy-ratelimited, x-ratelimit-remaining}
       if (rateLimited) { // Выжидаем конец периода квоты запросов
         const timeToWait = 500+1000*Number(respHeaders ['x-ratelimit-reset']);
-        Logger.log(`Ожидаем конца квоты запросов ${timeToWait} милисек`);
+        Logger.log(`[_makeApiCall] Ожидаем конца квоты запросов ${timeToWait} милисек`);
         Utilities.sleep(timeToWait);
+        Logger.log(`[_makeApiCall] Конец ожидания`);
       }
     } while (rateLimited)
 
@@ -384,8 +387,10 @@ function TI_GetInstrumentsID() {
 function TI_GetLastPriceByFigi(figi) {
   if (figi) {
     const data = tinkoffClientV2._GetLastPrices([figi])
-    return Number(data.lastPrices[0].price.units) + data.lastPrices[0].price.nano/1000000000
+    if (data.lastPrices[0].price)
+      return Number(data.lastPrices[0].price.units) + data.lastPrices[0].price.nano/1000000000
   }
+  return null
 }
 
 function TI_GetLastPrice(ticker) {
