@@ -365,8 +365,20 @@ const tinkoffClientV2 = new _TinkoffClientV2(OPENAPI_TOKEN)
 
 function _GetTickerNameByFIGI(figi) {
   //Logger.log(`[TI_GetTickerByFIGI] figi=${figi}`)   // DEBUG
+  const CACHE_KEY_PREFIX1 = 'figi2ticker_' + figi
+  const CACHE_KEY_PREFIX2 = 'figi2name_' + figi
+
+  const cached1 = CACHE.get(CACHE_KEY_PREFIX1)
+  const cached2 = CACHE.get(CACHE_KEY_PREFIX2)
+  if (cached1 && cached2) 
+    return [cached1,cached2]
+
   const {ticker,name} = tinkoffClientV2._GetInstrumentBy('INSTRUMENT_ID_TYPE_FIGI',null,figi).instrument
-  return [ticker,name]
+  if (ticker && name) {
+    CACHE.put(CACHE_KEY_PREFIX1, ticker, CACHE_MAX_AGE)
+    CACHE.put(CACHE_KEY_PREFIX2, name, CACHE_MAX_AGE)
+    return [ticker,name]
+  }
 }
 
 function TI_GetInstrumentsID() {
