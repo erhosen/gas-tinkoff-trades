@@ -316,7 +316,12 @@ class _TinkoffClientV2 {
     const data = this._makeApiCall(url, {'instrumentStatus': instrumentStatus})
     return data
   }
-  _GetInstrumentBy(idType,classCode,id) {
+  _Options(instrumentStatus) {
+    const url = `tinkoff.public.invest.api.contract.v1.InstrumentsService/Options`
+    const data = this._makeApiCall(url, {'instrumentStatus': instrumentStatus})
+    return data
+  }
+_GetInstrumentBy(idType,classCode,id) {
     const url = `tinkoff.public.invest.api.contract.v1.InstrumentsService/GetInstrumentBy`
     const data = this._makeApiCall(url, {'idType': idType, 'classCode': classCode, 'id': id})
     return data
@@ -359,7 +364,8 @@ class _TinkoffClientV2 {
     const data = this._makeApiCall(url,{})
     return data
   }
-}
+
+} // end of class _TinkoffClientV2
 
 const tinkoffClientV2 = new _TinkoffClientV2(OPENAPI_TOKEN)
 
@@ -589,3 +595,99 @@ function TI_GetOperations(accountId,from_param, to_param) {
   return values
 }
 
+/** Возвращает список торгуемых инструментов
+ * 
+ * @customfunction
+ * @param {any} refresh Триггер обновления
+ *  */
+function getAllTradableInstruments (status = 'INSTRUMENT_STATUS_UNSPECIFIED') {
+
+  const allBonds = tinkoffClientV2._Bonds(status).instruments.map((el) => Object.defineProperty(el, 'instrumentType', {'value': 'bond'}));
+  const allShares = tinkoffClientV2._Shares(status).instruments.map((el) => Object.defineProperty(el, 'instrumentType', {'value': 'share'}));
+  const allEtfs = tinkoffClientV2._Etfs(status).instruments.map((el) => Object.defineProperty(el, 'instrumentType', {'value': 'etf'}));
+  const allFutures = tinkoffClientV2._Futures(status).instruments.map((el) => Object.defineProperty(el, 'instrumentType', {'value': 'future'}));
+  const allOptions = tinkoffClientV2._Options(status).instruments.map((el) => Object.defineProperty(el, 'instrumentType', {'value': 'option'}));
+  
+  const allInstruments = allBonds.concat(allShares, allEtfs, allFutures, allOptions);
+  //Logger.log(`Number of instruments fetched: ${allInstruments.length}`);
+
+  const values = []
+  const allTradableInstrumentsHeaderV2 = ['instrumentType', 'ticker', 'name', 'currency', 'sector', 'countryOfRisk', 'exchange', 'classCode', 'otcFlag', 'weekendFlag', 'realExchange', 'tradingStatus', 'figi', 'isin', 'uid', 'positionUid'];
+  values.push(allTradableInstrumentsHeaderV2);
+
+  for (instrument of allInstruments) {
+  const { instrumentType,
+          ticker,
+          name,
+          currency,
+          sector,
+          countryOfRisk,
+          exchange,
+          classCode,
+          otcFlag,
+          weekendFlag,
+          realExchange,
+          tradingStatus,
+          figi,
+          isin,
+          uid,
+          positionUid,
+          /**apiTradeAvailableFlag,
+          blockedTcaFlag, 
+          buyAvailableFlag, 
+          countryOfRiskName, 
+          dlong, 
+          dlongMin, 
+          dshort, 
+          dshortMin, 
+          first1dayCandleDate, 
+          first1minCandleDate, 
+          forIisFlag, 
+          forQualInvestorFlag,
+          klong,
+          kshort,
+          lot,
+          minPriceIncrement,
+          sellAvailableFlag,
+          shortEnabledFlag,*/
+        } = instrument;
+    // ['instrumentType', 'ticker', 'name', 'currency', 'sector', 'countryOfRisk', 'exchange', 'classCode', 'otcFlag', 'weekendFlag', 'realExchange', 'tradingStatus', 'figi', 'isin', 'uid', 'positionUid']
+    values.push([
+          instrumentType,
+          ticker,
+          name,
+          currency,
+          sector,
+          countryOfRisk,
+          exchange,
+          classCode,
+          otcFlag,
+          weekendFlag,
+          realExchange,
+          tradingStatus,
+          figi,
+          isin,
+          uid,
+          positionUid,
+          /**apiTradeAvailableFlag,
+          blockedTcaFlag,
+          buyAvailableFlag,
+          countryOfRiskName,
+          dlong,
+          dlongMin,
+          dshort,
+          dshortMin,
+          first1dayCandleDate,
+          first1minCandleDate,
+          forIisFlag,
+          forQualInvestorFlag,
+          klong,
+          kshort,
+          lot,
+          minPriceIncrement,
+          sellAvailableFlag,
+          shortEnabledFlag,*/
+        ])
+  }
+
+  return values
